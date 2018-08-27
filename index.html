@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel = "stylesheet" sytle = "text/css" href="styles.css">
+<script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/react-dom-factories@1.0.2/index.js"></script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+</head>
+<!-- <div id="errors" style="
+  background: #c00;
+  color: #fff;
+  display: none;
+  margin: -20px -20px 20px;
+  padding: 20px;
+  white-space: pre-wrap;
+"></div> -->
+<body>
+<div id="root"></div>
+<div><ol class="a">
+<li>Display the location for each move in the format (col, row) in the move history list.</li>
+<li>Bold the currently selected item in the move list.</li>
+<li>Rewrite Board to use two loops to make the squares instead of hardcoding them.</li>
+<li>Add a toggle button that lets you sort the moves in either ascending or descending order.</li>
+<li>When someone wins, highlight the three squares that caused the win.</li>
+<li>When no one wins, display a message about the result being a draw. </li>
+</ol></div>
+  <script >
+
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function Square(props) {
+  return React.createElement(
+    "button",
+    { className: props.flag2 ? "squareHigh" : "square", onClick: props.onClick },
+    props.value
+  );
+}
+
+var Board = function (_React$Component) {
+  _inherits(Board, _React$Component);
+
+  function Board() {
+    _classCallCheck(this, Board);
+
+    return _possibleConstructorReturn(this, (Board.__proto__ || Object.getPrototypeOf(Board)).apply(this, arguments));
+  }
+
+  _createClass(Board, [{
+    key: "renderSquare",
+    value: function renderSquare(i) {
+      var _this2 = this;
+
+      return React.createElement(Square, {
+        flag2: this.props.flag[i],
+        value: this.props.squares[i],
+        onClick: function onClick() {
+          return _this2.props.onClick(i);
+        }
+      });
+    }
+  }, {
+    key: "block1",
+    value: function block1(m, n) {
+      var indents = [];
+      for (i = 0; i < m; i++) {
+        indents.push(React.createElement(
+          "div",
+          { className: "board-row", key: 100 * i + 10 * n + 100 },
+          "  ",
+          this.renderSquare(3 * i + n),
+          "   "
+        ));
+      }
+      return React.createElement(
+        "div",
+        { key: 1000 * i + 100 * n + 1000 },
+        indents
+      );
+    }
+  }, {
+    key: "block2",
+    value: function block2(m) {
+      var inden = [];
+      for (var _i = 0; _i < m; _i++) {
+        inden.push(this.block1(m, _i));
+      }
+      return React.createElement(
+        "div",
+        { id: "oh" },
+        inden
+      );
+    }
+  }, {
+    key: "render",
+    value: function render() {
+
+      return this.block2(3);
+    }
+  }]);
+
+  return Board;
+}(React.Component);
+
+var Game = function (_React$Component2) {
+  _inherits(Game, _React$Component2);
+
+  function Game(props) {
+    _classCallCheck(this, Game);
+
+    var _this3 = _possibleConstructorReturn(this, (Game.__proto__ || Object.getPrototypeOf(Game)).call(this, props));
+
+    _this3.state = {
+      history: [{
+        squares: Array(9).fill(null)
+      }],
+      stepNumber: 0,
+      xIsNext: true,
+      x: Array(9).fill(null),
+      y: Array(9).fill(null),
+      toggleFlag: true,
+      stepToggle: 0,
+      jumpToFlag: false
+
+    };
+    return _this3;
+  }
+
+  _createClass(Game, [{
+    key: "handleClick",
+    value: function handleClick(i) {
+      var history = this.state.history.slice(0, this.state.stepNumber + 1);
+      var current = history[history.length - 1];
+      var squares = current.squares.slice();
+      var x1 = this.state.x;
+      var y1 = this.state.y;
+      // let draw = '';
+      x1[this.state.stepNumber] = Math.floor(i / 3 + 1);
+      y1[this.state.stepNumber] = Math.floor(i % 3 + 1);
+
+      if (calculateWinner(squares) || squares[i]) {
+        //document.getElementById(100).innerHTML = "red";
+        // document.body.background = 'blue';
+        //  document.body.style.backgroundColor = "blue";
+        return;
+      }
+
+      squares[i] = this.state.xIsNext ? "X" : "O";
+
+      // document.getElementById(100).style.color = "red";
+      this.setState({
+        history: history.concat([{
+          squares: squares
+        }]),
+        x: x1,
+        y: y1,
+        stepNumber: history.length,
+        stepToggle: history.length,
+        xIsNext: !this.state.xIsNext
+
+      });
+    }
+  }, {
+    key: "jumpTo",
+    value: function jumpTo(step) {
+      this.setState({
+        jumpToFlag: true,
+        //p:step,
+        stepNumber: step,
+        xIsNext: step % 2 === 0
+      });
+
+      for (var j = 0; j < this.state.history.length; j++) {
+        document.getElementById(j).style.fontWeight = "500";
+      }if (this.state.toggleFlag) document.getElementById(step).style.fontWeight = "900";else if (step) document.getElementById(this.state.stepToggle - step + 1).style.fontWeight = "900";else document.getElementById(0).style.fontWeight = "900";
+    }
+  }, {
+    key: "toggle",
+    value: function toggle() {
+      this.setState({
+        toggleFlag: !this.state.toggleFlag
+        // xIsNext: (step % 2) === 0}
+      });
+      // if(!this.state.toggleFlag)
+      if (this.state.stepNumber && this.state.jumpToFlag) {
+        this.jumpTo(this.state.stepNumber);
+        this.setState({
+          stepNumber: this.state.stepToggle - this.state.stepNumber + 1
+          //  else this.jumpTo(this.state.stepToggle - this.state.p +1)
+        });
+      }
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this4 = this;
+
+      var history = this.state.history;
+      var current = history[this.state.stepNumber];
+      var winner = calculateWinner(current.squares);
+      var x = this.state.x;
+      var y = this.state.y;
+      var draw = '';
+      // let winSquare = []
+      //if(winner) winSquare = highlightSquare(current.squares)
+
+
+      if (this.state.stepNumber === 9 && !winner) draw = 'Draw!!';
+
+      // const toggleStep = this.state.stepNumber
+      var history1 = history.slice();
+
+      var moves = this.state.toggleFlag ? history.map(function (step, move) {
+
+        var desc = move ? 'Go to move #' + move : 'Go to game start';
+        if (move === 0) return React.createElement(
+          "button",
+          { id: "0", key: move, onClick: function onClick() {
+              return _this4.jumpTo(move);
+            } },
+          desc
+        );else return React.createElement(
+          "li",
+          { key: move },
+          React.createElement(
+            "button",
+            { id: move, onClick: function onClick() {
+                return _this4.jumpTo(move);
+              } },
+            desc
+          ),
+          "(",
+          x[move - 1],
+          ",  ",
+          y[move - 1],
+          ")"
+        );
+      }) : history1.reverse().map(function (step, move) {
+
+        var desc = move ? 'Go to move #' + (_this4.state.stepToggle - move + 1) : 'Go to game start';
+        if (move === 0) return React.createElement(
+          "button",
+          { id: "0", key: move, onClick: function onClick() {
+              return _this4.jumpTo(0);
+            } },
+          desc
+        );else return React.createElement(
+          "li",
+          { key: move },
+          React.createElement(
+            "button",
+            { id: move, onClick: function onClick() {
+                return _this4.jumpTo(_this4.state.stepToggle - move + 1);
+              } },
+            desc
+          ),
+          "(",
+          x[_this4.state.stepToggle - move],
+          ",  ",
+          y[_this4.state.stepToggle - move],
+          ")"
+        );
+      });
+      // document.getElementById(100).style.Color = 'red'
+      var flag = Array(9).fill(0);
+      flag = squareHighlight(current.squares);
+      var status = void 0;
+      if (winner) {
+
+        status = "Winner: " + winner;
+      } else {
+        status = "Next player: " + (this.state.xIsNext ? "X" : "O");
+      }
+      if (this.state.toggleFlag) return React.createElement(
+        "div",
+        { className: "game" },
+        React.createElement(
+          "div",
+          { className: "game-board" },
+          React.createElement(Board, {
+            flag: flag,
+            squares: current.squares,
+            onClick: function onClick(i) {
+              return _this4.handleClick(i);
+            }
+
+          })
+        ),
+        React.createElement(
+          "div",
+          { className: "game-info" },
+          React.createElement(
+            "button",
+            { className: "toggle", onClick: function onClick() {
+                return _this4.toggle();
+              } },
+            'toggle'
+          ),
+          React.createElement(
+            "div",
+            null,
+            status
+          ),
+          React.createElement(
+            "ol",
+            null,
+            moves
+          ),
+          React.createElement(
+            "div",
+            null,
+            draw
+          )
+        )
+      );else return React.createElement(
+        "div",
+        { className: "game" },
+        React.createElement(
+          "div",
+          { className: "game-board" },
+          React.createElement(Board, {
+            flag: flag,
+            squares: current.squares,
+            onClick: function onClick(i) {
+              return _this4.handleClick(i);
+            }
+          })
+        ),
+        React.createElement(
+          "div",
+          { className: "game-info" },
+          React.createElement(
+            "button",
+            { className: "toggle", onClick: function onClick() {
+                return _this4.toggle();
+              } },
+            'toggle'
+          ),
+          React.createElement(
+            "div",
+            null,
+            status
+          ),
+          React.createElement(
+            "ol",
+            { reversed: true },
+            moves
+          ),
+          React.createElement(
+            "div",
+            null,
+            draw
+          )
+        )
+      );
+    }
+  }]);
+
+  return Game;
+}(React.Component);
+
+ReactDOM.render(React.createElement(Game, null), document.getElementById("root"));
+
+function calculateWinner(squares) {
+  var lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  for (var _i2 = 0; _i2 < lines.length; _i2++) {
+    var _lines$_i = _slicedToArray(lines[_i2], 3),
+        a = _lines$_i[0],
+        b = _lines$_i[1],
+        c = _lines$_i[2];
+
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
+function squareHighlight(squares) {
+  var lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  var flag1 = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  for (var _i3 = 0; _i3 < lines.length; _i3++) {
+    var _lines$_i2 = _slicedToArray(lines[_i3], 3),
+        a = _lines$_i2[0],
+        b = _lines$_i2[1],
+        c = _lines$_i2[2];
+
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      flag1[a] = 1;
+      flag1[b] = 1;
+      flag1[c] = 1;
+
+      return flag1;
+    }
+  }
+  return flag1;
+}
+
+
+
+    </script>
+<script>
+window.addEventListener('mousedown', function(e) {
+  document.body.classList.add('mouse-navigation');
+  document.body.classList.remove('kbd-navigation');
+});
+window.addEventListener('keydown', function(e) {
+  if (e.keyCode === 9) {
+    document.body.classList.add('kbd-navigation');
+    document.body.classList.remove('mouse-navigation');
+  }
+});
+window.addEventListener('click', function(e) {
+  if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#') {
+    e.preventDefault();
+  }
+});
+window.onerror = function(message, source, line, col, error) {
+  var text = error ? error.stack || error : message + ' (at ' + source + ':' + line + ':' + col + ')';
+  errors.textContent += text + '\n';
+  errors.style.display = '';
+};
+console.error = (function(old) {
+  return function error() {
+    errors.textContent += Array.prototype.slice.call(arguments).join(' ') + '\n';
+    errors.style.display = '';
+    old.apply(this, arguments);
+  }
+})(console.error);
+</script>
+
+</body>
+</html>
